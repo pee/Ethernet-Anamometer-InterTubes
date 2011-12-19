@@ -215,7 +215,7 @@ public class Report extends Method {
                 if (conn != null) {
                     conn.close();
                 }
-                envCtx.close();
+                //envCtx.close();
                 initCtx.close();
 
             } catch (Exception e2) {
