@@ -39,6 +39,10 @@
         <div id="temp1" style="width:800px;height:200px"></div>
         <script id="source" language="javascript" type="text/javascript" src="js/Temp1.js"></script>
 
+        <p> Temp290A2DA0021AC </p>
+        <div id="temp2" style="width:800px;height:200px"></div>
+        <script id="source" language="javascript" type="text/javascript" src="js/Temp2.js"></script>
+
 
     </body>
 

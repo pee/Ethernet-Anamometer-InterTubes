@@ -24,6 +24,10 @@
         <servlet-name>Temp1</servlet-name>
         <servlet-class>net.sig13.sensor.sc4.Temp1</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Temp2</servlet-name>
+        <servlet-class>net.sig13.sensor.sc4.Temp2</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>JSONCollector</servlet-name>
         <url-pattern>/report</url-pattern>
@@ -47,6 +51,10 @@
     <servlet-mapping>
         <servlet-name>Temp1</servlet-name>
         <url-pattern>/temp1</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Temp2</servlet-name>
+        <url-pattern>/temp2</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
