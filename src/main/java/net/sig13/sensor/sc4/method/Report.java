@@ -170,7 +170,7 @@ public class Report extends Method {
             if (rs.next() == true) {
                 logger.debug("Table " + readingKey + " was found");
                 conn.close();
-                envCtx.close();
+                //envCtx.close();
                 initCtx.close();
                 return;
             }
@@ -200,7 +200,7 @@ public class Report extends Method {
             logger.debug("second getUpdateCount:" + uc);
 
             conn.close();
-            envCtx.close();
+            //envCtx.close();
             initCtx.close();
 
 
