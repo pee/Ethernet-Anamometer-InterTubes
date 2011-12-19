@@ -137,7 +137,7 @@ public class Report extends Method {
 
 
             conn.close();
-            envCtx.close();
+            //envCtx.close();
             initCtx.close();
 
         } catch (Exception ex) {
