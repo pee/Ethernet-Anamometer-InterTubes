@@ -89,7 +89,7 @@ public class WindSpeed extends HttpServlet {
                 try {
                     conn.close();
                     initCtx.close();
-                    envCtx.close();
+                    //envCtx.close();
                 } catch (Exception e2) {
                     logger.error(e2, e2);
                 }
