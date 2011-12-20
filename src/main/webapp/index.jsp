@@ -22,14 +22,14 @@
         <p>Windspeed in meters/second</p>
         <div id="placeholder" style="width:800px;height:200px"></div>
         <script id="source" language="javascript" type="text/javascript" src="js/WindSpeed.js"></script>
-
-        <p>Relative Humidity (note sensor might be f*cked)</p>
-        <div id="humidity" style="width:800px;height:200px"></div>
-        <script id="source" language="javascript" type="text/javascript" src="js/Humidity.js"></script>
-
+        
         <p> House Power Use in watts </p>
         <div id="powerplot" style="width:800px;height:200px"></div>
         <script id="source" language="javascript" type="text/javascript" src="js/PowerWatts.js"></script>
+
+        <p> Barometric Pressure (Pa) </p>
+        <div id="pressure0" style="width:800px;height:200px"></div>
+        <script id="source" language="javascript" type="text/javascript" src="js/Pressure0.js"></script>
 
         <p> Temp0 10_F73ECB010800_temperature</p>
         <div id="temp0" style="width:800px;height:200px"></div>
@@ -39,9 +39,13 @@
         <div id="temp1" style="width:800px;height:200px"></div>
         <script id="source" language="javascript" type="text/javascript" src="js/Temp1.js"></script>
 
-        <p> Temp290A2DA0021AC </p>
+        <p> Temp2 90A2DA0021AC </p>
         <div id="temp2" style="width:800px;height:200px"></div>
         <script id="source" language="javascript" type="text/javascript" src="js/Temp2.js"></script>
+
+        <p>Relative Humidity (note sensor might be f*cked)</p>
+        <div id="humidity" style="width:800px;height:200px"></div>
+        <script id="source" language="javascript" type="text/javascript" src="js/Humidity.js"></script>
 
 
     </body>
