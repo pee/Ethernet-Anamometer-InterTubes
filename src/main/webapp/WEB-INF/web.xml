@@ -32,6 +32,10 @@
         <servlet-name>Pressure0</servlet-name>
         <servlet-class>net.sig13.sensor.sc4.Pressure0</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>PressureAll</servlet-name>
+        <servlet-class>net.sig13.sensor.sc4.PressureAll</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>JSONCollector</servlet-name>
         <url-pattern>/report</url-pattern>
@@ -63,6 +67,10 @@
     <servlet-mapping>
         <servlet-name>Pressure0</servlet-name>
         <url-pattern>/pressure0</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PressureAll</servlet-name>
+        <url-pattern>/pressureAll</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

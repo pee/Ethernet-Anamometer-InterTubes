@@ -20,9 +20,9 @@ import javax.servlet.http.*;
  *
  * @author pee
  */
-public class Pressure0 extends HttpServlet {
+public class PressureAll extends HttpServlet {
 
-    private static final Logger logger = Logger.getLogger(Pressure0.class);
+    private static final Logger logger = Logger.getLogger(PressureAll.class);
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -56,7 +56,7 @@ public class Pressure0 extends HttpServlet {
 
             Statement s = conn.createStatement();
 
-            boolean ex = s.execute("(select * from 90A2DA0021AC_pressure order by time desc limit 1000 ) order by time");
+            boolean ex = s.execute("(select * from 90A2DA0021AC_pressure order by time desc limit 30000 ) order by time");
 
             ResultSet rs = s.getResultSet();
 
