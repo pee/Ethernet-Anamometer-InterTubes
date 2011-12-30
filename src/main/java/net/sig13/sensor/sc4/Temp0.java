@@ -13,6 +13,8 @@ import javax.sql.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Enumeration;
+import java.util.regex.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
@@ -23,6 +25,7 @@ import javax.servlet.http.*;
 public class Temp0 extends HttpServlet {
 
     private static final Logger logger = Logger.getLogger(Temp0.class);
+    private static final String dateRegex = "(\\d\\d\\d\\d)\\D(\\d\\d)\\D(\\d\\d)";
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -39,6 +42,9 @@ public class Temp0 extends HttpServlet {
         Connection conn = null;
         PrintWriter out = null;
 
+        boolean doDateSelect = false;
+        boolean doSelectAll = false;
+
         try {
 
             initCtx = new InitialContext();
@@ -52,11 +58,60 @@ public class Temp0 extends HttpServlet {
                 return;
             }
 
+            String startDate = request.getParameter("startDate");
+            String stopDate = request.getParameter("stopDate");
+
+            // Check/parse startDate and stopDate selectors if they exist
+            if ((startDate != null) && (stopDate != null)) {
+
+                Pattern datePattern = Pattern.compile(dateRegex, Pattern.CASE_INSENSITIVE);
+                Matcher dateMatcher = datePattern.matcher(startDate);
+
+                if (dateMatcher.matches() == false) {
+                    logger.fatal("Invalid startDate:" + startDate);
+                    response.sendError(500, "Invalid startDate:" + startDate);
+                    return;
+                }
+
+                dateMatcher = datePattern.matcher(stopDate);
+                if (dateMatcher.matches() == false) {
+                    logger.fatal("Invalid stopDate:" + stopDate);
+                    response.sendError(500, "Invalid stopDate:" + stopDate);
+                    return;
+                }
+
+                doDateSelect = true;
+
+            }
+
+            Enumeration<String> pnames = request.getParameterNames();
+
+            while (pnames.hasMoreElements()) {
+                String pname = pnames.nextElement();
+                if (pname.compareToIgnoreCase("all") == 0) {
+                    doSelectAll = true;
+                }
+            }
+
+
             conn = ds.getConnection();
 
             Statement s = conn.createStatement();
 
-            boolean ex = s.execute("(select * from 10_F73ECB010800_temperature order by time desc limit 5000 ) order by time");
+            boolean ex = false;
+
+            if (doDateSelect == true) {
+                String select = "select * from 10_F73ECB010800_temperature ";
+                select += " where ( time > '" + startDate + "') ";
+                select += " and ( time < '" + stopDate + "')";
+                select = select + " order by time";
+
+                ex = s.execute(select);
+            } else if (doSelectAll == true) {
+                ex = s.execute("select * from 10_F73ECB010800_temperature order by time");
+            } else {
+                ex = s.execute("(select * from 10_F73ECB010800_temperature order by time desc limit 5000 ) order by time");
+            }
 
             ResultSet rs = s.getResultSet();
 
@@ -113,7 +168,7 @@ public class Temp0 extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
@@ -126,7 +181,7 @@ public class Temp0 extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 

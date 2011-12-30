@@ -18,12 +18,21 @@ $(function () {
             fill: true
         },
         xaxis: {
-            mode: "time"
+            mode: "time",
+            timeformat: "%y/%m/%d",
+            minTickSize: [2, "day"],
+            tickSize: [3, "day"]
         },
-        yaxis: {
+        yaxis: [
+        {
             min: 95000,
-            max: 105000
-        },
+            max: 105000,
+            position: 'left'
+        }, {
+            min: 0,
+            position: 'right'
+        }
+        ],
         selection: {
             mode: "x"
         },
@@ -38,9 +47,15 @@ $(function () {
 
     };
 
-    var powerplaceHolder = $("#migratron");
+    console.log(options);
 
-    var migraines = [[1324072800000, 0],
+    var plotDiv = $("#migratron");
+
+    var migraines = [
+    [1325017980000, 0],
+    [1324850400000, 0],
+    [1324593000000, 0],
+    [1324072800000, 0],
     [1323981000000, 0],
     [1323117000000, 0],
     [1323028800000, 0],
@@ -159,8 +174,10 @@ $(function () {
 
     // reset data
     var pressuredata = [];
+    var pressure2Plot = [];
+    var temp0Data = [];
 
-    var powerplot = $.plot(powerplaceHolder, pressuredata, options);
+    var powerplot = $.plot(plotDiv, pressuredata, options);
 
     function showPowerTooltip(x, y, contents) {
 
@@ -200,12 +217,13 @@ $(function () {
 
     });
 
-    function fetchPressureAll() {
+    function fetchData() {
 
         function onDataReceived(series) {
             // we get all the data in one go, if we only got partial
             // data, we could merge it with what we already got
             pressuredata = [ series ];
+            pressure2Plot = series;
 
             var fpoint = pressuredata[0][0]
             
@@ -231,25 +249,84 @@ $(function () {
                 mig[1] = max + 25;
             }
 
-            options['yaxis']['min'] = min - 25;
-            options['yaxis']['max'] = max + 25;
+            console.log(options);
+            options['yaxis'][0]['min'] = min - 25;
+            options['yaxis'][0]['max'] = max + 25;
+            console.log(options);
 
             // $.plot($("#migratron"), pressuredata, options);
             $.plot($("#migratron"), [ {
-                data: series,
+                data: pressure2Plot,
+                label: "pressure (Pa)",
                 lines: {
                     show: true,
                     fill: true
-                }
+                },
+                xaxis: 1,
+                yaxis: 1
  
             }, {
                 data: migraines,
+                label: "ouchies",
                 bars: {
                     show: true,
                     align: "center",
                     barWidth: 60*60*1000*12,
                     fill: true
-                }
+                },
+                xaxis: 1,
+                yaxis: 1
+            }, {
+                data: temp0Data,
+                label: "temp (f)",
+                lines: {
+                    show: true,
+                    fill: true
+                },
+                xaxis: 1,
+                yaxis: 2
+            } ], options);
+
+
+        }
+
+        function onTempReceived(series) {
+            // we get all the data in one go, if we only got partial
+            // data, we could merge it with what we already got
+
+            temp0Data = series;
+
+            // $.plot($("#migratron"), pressuredata, options);
+            $.plot($("#migratron"), [ {
+                data: pressure2Plot,
+                label: "pressure (Pa)",
+                lines: {
+                    show: true,
+                    fill: true
+                },
+                xaxis: 1,
+                yaxis: 1
+
+            }, {
+                data: migraines,
+                label: "ouchies",
+                bars: {
+                    show: true,
+                    align: "center",
+                    barWidth: 60*60*1000*12,
+                    fill: true
+                },
+                xaxis: 1,
+                yaxis: 1
+            }, {
+                data: temp0Data,
+                label: "temp (f)",
+                lines: {
+                    show: true,
+                    fill: false
+                },
+                xaxis: 1,
+                yaxis: 2
             } ], options);
 
 
@@ -266,10 +343,24 @@ $(function () {
             success: onDataReceived
         });
 
-        setTimeout(fetchPressureAll, 120000);
+        $.ajax({
+            // usually, we'll just call the same URL, a script
+            // connected to a database, but in this case we only
+            // have static example files so we need to modify the
+            // URL
+            url: "temp0?all=true",
+            method: 'GET',
+            dataType: 'json',
+            success: onTempReceived
+        });
+
+        setTimeout(fetchData, 120000 );
 
     }
 
-    setTimeout(fetchPressureAll, 10);
+    setTimeout( fetchData, 10 );
+
+ 
+
 });
 
