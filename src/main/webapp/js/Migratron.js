@@ -23,13 +23,22 @@ $(function () {
             minTickSize: [2, "day"],
             tickSize: [3, "day"]
         },
-        yaxis: [
+        //        yaxis: [
+        //        {
+        //            min: 95000,
+        //            max: 105000
+        //        }, {
+        //            min: 0
+        //        }
+        //        ],
+        yaxes: [
         {
-            min: 95000,
+            min:95000,
             max: 105000,
             position: 'left'
-        }, {
-            min: 0,
+        },
+
+        {
             position: 'right'
         }
         ],
@@ -177,8 +186,79 @@ $(function () {
     var pressure2Plot = [];
     var temp0Data = [];
 
-    var powerplot = $.plot(plotDiv, pressuredata, options);
+    plot = $.plot(plotDiv, pressuredata, options);
+    //    var plot = $.plot( plotDiv , [
+    //    {
+    //        data: pressure2Plot,
+    //        label: "pressure (Pa)",
+    //        lines: {
+    //            show: true,
+    //            fill: true
+    //        },
+    //        xaxis: 1,
+    //        yaxis: 1
+    //
+    //    }, {
+    //        data: migraines,
+    //        label: "ouchies",
+    //        bars: {
+    //            show: true,
+    //            align: "center",
+    //            barWidth: 60*60*1000*12,
+    //            fill: true
+    //        },
+    //        xaxis: 1,
+    //        yaxis: 1
+    //    }, {
+    //        data: temp0Data,
+    //        label: "temp (f)",
+    //        lines: {
+    //            show: true,
+    //            fill: true
+    //        },
+    //        xaxis: 1,
+    //        yaxis: 2
+    //    } ], options);
 
+    console.log( plot.getOptions() );
+
+    drawPlot();
+
+    function drawPlot() {
+        $.plot( plotDiv , [
+        {
+            data: pressure2Plot,
+            label: "pressure (Pa)",
+            lines: {
+                show: true,
+                fill: true
+            },
+            xaxis: 1,
+            yaxis: 1
+
+        }, {
+            data: migraines,
+            label: "ouchies",
+            bars: {
+                show: true,
+                align: "center",
+                barWidth: 60*60*1000*12,
+                fill: true
+            },
+            xaxis: 1,
+            yaxis: 1
+        }, {
+            data: temp0Data,
+            label: "temp (f)",
+            lines: {
+                show: true,
+                fill: true
+            },
+            xaxis: 1,
+            yaxis: 2
+        } ], options);
+
+    }
     function showPowerTooltip(x, y, contents) {
 
         $('<div id="powertooltip">' + contents + '</div>').css( {
@@ -219,7 +299,8 @@ $(function () {
 
     function fetchData() {
 
-        function onDataReceived(series) {
+        function onPressureReceived(series) {
+
             // we get all the data in one go, if we only got partial
             // data, we could merge it with what we already got
             pressuredata = [ series ];
@@ -243,6 +324,7 @@ $(function () {
                 }
             }
 
+            // set the Y for our migraines to new max+25
             for ( mg in migraines ) {
                 var mig = migraines[mg];
                 //console.log(mig);
@@ -250,42 +332,62 @@ $(function () {
             }
 
             console.log(options);
-            options['yaxis'][0]['min'] = min - 25;
-            options['yaxis'][0]['max'] = max + 25;
+            options['yaxes'][0]['min'] = min - 25;
+            options['yaxes'][0]['max'] = max + 25;
             console.log(options);
 
+            drawPlot();
+
+            //plot.setupGrid();
+
+            //            // $.plot($("#migratron"), pressuredata, options);
+            //            $.plot($("#migratron"), [ {
+            //                data: pressure2Plot,
+            //                label: "pressure (Pa)",
+            //                lines: {
+            //                    show: true,
+            //                    fill: true
+            //                },
+            //                xaxis: 1,
+            //                yaxis: 1
+            //
+            //            }, {
+            //                data: migraines,
+            //                label: "ouchies",
+            //                bars: {
+            //                    show: true,
+            //                    align: "center",
+            //                    barWidth: 60*60*1000*12,
+            //                    fill: true
+            //                },
+            //                xaxis: 1,
+            //                yaxis: 1
+            //            }, {
+            //                data: temp0Data,
+            //                label: "temp (f)",
+            //                lines: {
+            //                    show: true,
+            //                    fill: true
+            //                },
+            //                xaxis: 1,
+            //                yaxis: 2
+            //            } ], options);
+
             // $.plot($("#migratron"), pressuredata, options);
-            $.plot($("#migratron"), [ {
-                data: pressure2Plot,
-                label: "pressure (Pa)",
-                lines: {
-                    show: true,
-                    fill: true
-                },
-                xaxis: 1,
-                yaxis: 1
- 
-            }, {
-                data: migraines,
-                label: "ouchies",
-                bars: {
-                    show: true,
-                    align: "center",
-                    barWidth: 60*60*1000*12,
-                    fill: true
-                },
-                xaxis: 1,
-                yaxis: 1
-            }, {
-                data: temp0Data,
-                label: "temp (f)",
-                lines: {
-                    show: true,
-                    fill: true
-                },
-                xaxis: 1,
-                yaxis: 2
-            } ], options);
+//            plot.setData( [
+//            {
+//                data: pressure2Plot
+//            },
+//
+//            {
+//                data: migraines
+//            },
+//
+//            {
+//                data: temp0Data
+//            }
+//            ]);
+//            plot.draw();
 
 
         }
@@ -296,38 +398,55 @@ $(function () {
 
             temp0Data = series;
 
-            // $.plot($("#migratron"), pressuredata, options);
-            $.plot($("#migratron"), [ {
-                data: pressure2Plot,
-                label: "pressure (Pa)",
-                lines: {
-                    show: true,
-                    fill: true
-                },
-                xaxis: 1,
-                yaxis: 1
+            drawPlot();
 
-            }, {
-                data: migraines,
-                label: "ouchies",
-                bars: {
-                    show: true,
-                    align: "center",
-                    barWidth: 60*60*1000*12,
-                    fill: true
-                },
-                xaxis: 1,
-                yaxis: 1
-            }, {
-                data: temp0Data,
-                label: "temp (f)",
-                lines: {
-                    show: true,
-                    fill: false
-                },
-                xaxis: 1,
-                yaxis: 2
-            } ], options);
+            //            // $.plot($("#migratron"), pressuredata, options);
+            //            $.plot($("#migratron"), [ {
+            //                data: pressure2Plot,
+            //                label: "pressure (Pa)",
+            //                lines: {
+            //                    show: true,
+            //                    fill: true
+            //                },
+            //                xaxis: 1,
+            //                yaxis: 1
+            //
+            //            }, {
+            //                data: migraines,
+            //                label: "ouchies",
+            //                bars: {
+            //                    show: true,
+            //                    align: "center",
+            //                    barWidth: 60*60*1000*12,
+            //                    fill: true
+            //                },
+            //                xaxis: 1,
+            //                yaxis: 1
+            //            }, {
+            //                data: temp0Data,
+            //                label: "temp (f)",
+            //                lines: {
+            //                    show: true,
+            //                    fill: false
+            //                },
+            //                xaxis: 1,
+            //                yaxis: 2
+            //            } ], options);
+
+//            plot.setData( [
+//            {
+//                data: pressure2Plot
+//            },
+//
+//            {
+//                data: migraines
+//            },
+//
+//            {
+//                data: temp0Data
+//            }
+//            ]);
+//            plot.draw();
 
 
         }
@@ -340,7 +459,7 @@ $(function () {
             url: "pressureAll",
             method: 'GET',
             dataType: 'json',
-            success: onDataReceived
+            success: onPressureReceived
         });
 
         $.ajax({
@@ -348,7 +467,7 @@ $(function () {
             // connected to a database, but in this case we only
             // have static example files so we need to modify the
             // URL
-            url: "temp0?all=true",
+            url: "temp0?startDate=2011-09-01&stopDate=2011-12-31",
             method: 'GET',
             dataType: 'json',
             success: onTempReceived
