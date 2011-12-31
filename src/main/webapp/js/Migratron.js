@@ -342,7 +342,7 @@ $(function () {
             // connected to a database, but in this case we only
             // have static example files so we need to modify the
             // URL
-            url: "temp0?startDate=2011-08-01&stopDate=2011-12-31",
+            url: "temp0?startDate=2011-08-01&stopDate=2012-06-31",
             method: 'GET',
             dataType: 'json',
             success: onTempReceived
