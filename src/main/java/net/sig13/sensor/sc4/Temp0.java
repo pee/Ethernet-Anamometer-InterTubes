@@ -68,15 +68,16 @@ public class Temp0 extends HttpServlet {
                 Matcher dateMatcher = datePattern.matcher(startDate);
 
                 if (dateMatcher.matches() == false) {
-                    logger.fatal("Invalid startDate:" + startDate);
-                    response.sendError(500, "Invalid startDate:" + startDate);
+                    logger.fatal("Invalid startDate:" + startDate + ":");
+                    response.sendError(500, "Invalid startDate:" + startDate + ":");
                     return;
                 }
 
                 dateMatcher = datePattern.matcher(stopDate);
-                if (dateMatcher.matches() == false) {
-                    logger.fatal("Invalid stopDate:" + stopDate);
-                    response.sendError(500, "Invalid stopDate:" + stopDate);
+                if ( (stopDate.equalsIgnoreCase("now") == false ) &&
+                    dateMatcher.matches() == false) {
+                    logger.fatal("Invalid stopDate:" + stopDate + ":");
+                    response.sendError(500, "Invalid stopDate:" + stopDate + ":");
                     return;
                 }
 

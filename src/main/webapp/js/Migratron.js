@@ -232,6 +232,17 @@ $(function () {
             },
             xaxis: 1,
             yaxis: 1
+        },{
+            data: migraines,
+            //label: "ouchies",
+            bars: {
+                show: true,
+                align: "center",
+                barWidth: 1,
+                fill: true
+            },
+            xaxis: 1,
+            yaxis: 1
         } ], options);
 
     }
@@ -327,10 +338,6 @@ $(function () {
         }
 
         $.ajax({
-            // usually, we'll just call the same URL, a script
-            // connected to a database, but in this case we only
-            // have static example files so we need to modify the
-            // URL
             url: "pressureAll",
             method: 'GET',
             dataType: 'json',
@@ -338,11 +345,7 @@ $(function () {
         });
 
         $.ajax({
-            // usually, we'll just call the same URL, a script
-            // connected to a database, but in this case we only
-            // have static example files so we need to modify the
-            // URL
-            url: "temp0?startDate=2011-08-01&stopDate=2012-06-31",
+            url: "temp0?startDate=2010-03-01&stopDate=now",
             method: 'GET',
             dataType: 'json',
             success: onTempReceived

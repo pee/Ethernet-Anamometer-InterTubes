@@ -56,7 +56,8 @@ public class PressureAll extends HttpServlet {
 
             Statement s = conn.createStatement();
 
-            boolean ex = s.execute("(select * from 90A2DA0021AC_pressure order by time desc limit 40000 ) order by time");
+            // TODO: check return do something useful
+            boolean ex = s.execute("select * from 90A2DA0021AC_pressure order by time");
 
             ResultSet rs = s.getResultSet();
 
