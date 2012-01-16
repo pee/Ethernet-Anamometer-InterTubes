@@ -30,9 +30,12 @@ $(function () {
         {
             min:95000,
             max: 105000,
-            position: 'left'
+            position: 'right'
         },
 
+        {
+            position: 'right'
+        },
         {
             position: 'right'
         }
@@ -47,12 +50,12 @@ $(function () {
         crosshair: {
             mode: "x"
         }
-//        zoom: {
-//            interactive: true
-//        },
-//        pan: {
-//            interactive: true
-//        }
+    //        zoom: {
+    //            interactive: true
+    //        },
+    //        pan: {
+    //            interactive: true
+    //        }
 
 
     };
@@ -62,6 +65,7 @@ $(function () {
     var plotDiv = $("#migratron");
 
     var migraines = [
+    [1326200100000, 0],
     [1326146400000, 0],
     [1326042000000, 0],
     [1325017980000, 0],
@@ -188,6 +192,7 @@ $(function () {
     var pressuredata = [];
     var pressure2Plot = [];
     var temp0Data = [];
+    var windData = [];
 
     plot = $.plot(plotDiv, pressuredata, options);
   
@@ -223,6 +228,18 @@ $(function () {
             },
             xaxis: 1,
             yaxis: 2
+        },{
+            data: windData,
+            label: "speed (m/s)",
+            lines: {
+                show: true,
+                fill: false
+            },
+            bars: {
+                show: false
+            },
+            xaxis: 1,
+            yaxis: 3
         }, {
             data: migraines,
             label: "ouchies",
@@ -248,43 +265,43 @@ $(function () {
         } ], options);
 
     }
-    function showPowerTooltip(x, y, contents) {
-
-        $('<div id="powertooltip">' + contents + '</div>').css( {
-            position: 'absolute',
-            display: 'none',
-            top: y + 10,
-            left: x + 10,
-            border: '1px solid #fdd',
-            padding: '2px',
-            'background-color': '#fee',
-            opacity: 0.80
-        }).appendTo("body").fadeIn(200);
-    }
+//    function showPowerTooltip(x, y, contents) {
+//
+//        $('<div id="powertooltip">' + contents + '</div>').css( {
+//            position: 'absolute',
+//            display: 'none',
+//            top: y + 10,
+//            left: x + 10,
+//            border: '1px solid #fdd',
+//            padding: '2px',
+//            'background-color': '#fee',
+//            opacity: 0.80
+//        }).appendTo("body").fadeIn(200);
+//    }
 
     var powerpreviousPoint = null;
 
-    $("#migratron").bind("plothover", function (event, pos, item) {
-        $("#x").text(pos.x);
-        $("#y").text(pos.y);
-
-        if (item) {
-            if (powerpreviousPoint != item.datapoint) {
-                powerpreviousPoint = item.datapoint;
-
-                $("#powertooltip").remove();
-                var x = item.datapoint[0],
-                y = item.datapoint[1];
-
-                showPowerTooltip(item.pageX, item.pageY, y + " Pa");
-            }
-        }
-        else {
-            $("#powertooltip").remove();
-            powerpreviousPoint = null;
-        }
-
-    });
+//    $("#migratron").bind("plothover", function (event, pos, item) {
+//        $("#x").text(pos.x);
+//        $("#y").text(pos.y);
+//
+//        if (item) {
+//            if (powerpreviousPoint != item.datapoint) {
+//                powerpreviousPoint = item.datapoint;
+//
+//                $("#powertooltip").remove();
+//                var x = item.datapoint[0],
+//                y = item.datapoint[1];
+//
+//                showPowerTooltip(item.pageX, item.pageY, y + " Pa");
+//            }
+//        }
+//        else {
+//            $("#powertooltip").remove();
+//            powerpreviousPoint = null;
+//        }
+//
+//    });
 
     function fetchData() {
 
@@ -330,13 +347,16 @@ $(function () {
         }
 
         function onTempReceived(series) {
-            // we get all the data in one go, if we only got partial
-            // data, we could merge it with what we already got
 
             temp0Data = series;
 
             drawPlot();
 
+        }
+
+        function onWindSpeedReceived(series) {
+            windData = series;
+            drawPlot();
         }
 
         $.ajax({
@@ -353,7 +373,14 @@ $(function () {
             success: onTempReceived
         });
 
-        setTimeout(fetchData, 120000 );
+        $.ajax({
+            url: "windSpeed?startDate=2010-03-01&stopDate=now&reductionFactor=20",
+            method: 'GET',
+            dataType: 'json',
+            success: onWindSpeedReceived
+        });
+
+        setTimeout(fetchData, 300000 );
 
     }
 

@@ -37,8 +37,8 @@ public class Temp0 extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         Context initCtx = null;
-        Context envCtx = null;
-        DataSource ds = null;
+        Context envCtx;
+        DataSource ds;
         Connection conn = null;
         PrintWriter out = null;
 
@@ -117,7 +117,6 @@ public class Temp0 extends HttpServlet {
             ResultSet rs = s.getResultSet();
 
             JSONArray jar = new JSONArray();
-
 
             while (rs.next()) {
 
