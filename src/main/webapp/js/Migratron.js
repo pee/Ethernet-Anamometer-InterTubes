@@ -35,10 +35,10 @@ $(function () {
 
         {
             position: 'right'
-        },
-        {
-            position: 'right'
-        }
+        }//,
+        //{
+        //    position: 'right'
+        //}
         ],
         selection: {
             mode: "x"
@@ -228,19 +228,21 @@ $(function () {
             },
             xaxis: 1,
             yaxis: 2
-        },{
-            data: windData,
-            label: "speed (m/s)",
-            lines: {
-                show: true,
-                fill: false
-            },
-            bars: {
-                show: false
-            },
-            xaxis: 1,
-            yaxis: 3
-        }, {
+        },
+//        },{
+//            data: windData,
+//            label: "speed (m/s)",
+//            lines: {
+//                show: true,
+//                fill: false
+//            },
+//            bars: {
+//                show: false
+//            },
+//            xaxis: 1,
+//            yaxis: 3
+//        },
+            {
             data: migraines,
             label: "ouchies",
             bars: {
@@ -373,12 +375,12 @@ $(function () {
             success: onTempReceived
         });
 
-        $.ajax({
-            url: "windSpeed?startDate=2010-03-01&stopDate=now&reductionFactor=20",
-            method: 'GET',
-            dataType: 'json',
-            success: onWindSpeedReceived
-        });
+//        $.ajax({
+//            url: "windSpeed?startDate=2010-03-01&stopDate=now&reductionFactor=20",
+//            method: 'GET',
+//            dataType: 'json',
+//            success: onWindSpeedReceived
+//        });
 
         setTimeout(fetchData, 300000 );
 
