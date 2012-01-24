@@ -65,6 +65,11 @@ $(function () {
     var plotDiv = $("#migratron");
 
     var migraines = [
+
+    [1327350600000, 0],
+    [1327096800000, 0],
+    [1326924000000, 0],
+    [1326869100000, 0],
     [1326200100000, 0],
     [1326146400000, 0],
     [1326042000000, 0],
@@ -229,20 +234,20 @@ $(function () {
             xaxis: 1,
             yaxis: 2
         },
-//        },{
-//            data: windData,
-//            label: "speed (m/s)",
-//            lines: {
-//                show: true,
-//                fill: false
-//            },
-//            bars: {
-//                show: false
-//            },
-//            xaxis: 1,
-//            yaxis: 3
-//        },
-            {
+        //        },{
+        //            data: windData,
+        //            label: "speed (m/s)",
+        //            lines: {
+        //                show: true,
+        //                fill: false
+        //            },
+        //            bars: {
+        //                show: false
+        //            },
+        //            xaxis: 1,
+        //            yaxis: 3
+        //        },
+        {
             data: migraines,
             label: "ouchies",
             bars: {
@@ -267,43 +272,43 @@ $(function () {
         } ], options);
 
     }
-//    function showPowerTooltip(x, y, contents) {
-//
-//        $('<div id="powertooltip">' + contents + '</div>').css( {
-//            position: 'absolute',
-//            display: 'none',
-//            top: y + 10,
-//            left: x + 10,
-//            border: '1px solid #fdd',
-//            padding: '2px',
-//            'background-color': '#fee',
-//            opacity: 0.80
-//        }).appendTo("body").fadeIn(200);
-//    }
+    //    function showPowerTooltip(x, y, contents) {
+    //
+    //        $('<div id="powertooltip">' + contents + '</div>').css( {
+    //            position: 'absolute',
+    //            display: 'none',
+    //            top: y + 10,
+    //            left: x + 10,
+    //            border: '1px solid #fdd',
+    //            padding: '2px',
+    //            'background-color': '#fee',
+    //            opacity: 0.80
+    //        }).appendTo("body").fadeIn(200);
+    //    }
 
     var powerpreviousPoint = null;
 
-//    $("#migratron").bind("plothover", function (event, pos, item) {
-//        $("#x").text(pos.x);
-//        $("#y").text(pos.y);
-//
-//        if (item) {
-//            if (powerpreviousPoint != item.datapoint) {
-//                powerpreviousPoint = item.datapoint;
-//
-//                $("#powertooltip").remove();
-//                var x = item.datapoint[0],
-//                y = item.datapoint[1];
-//
-//                showPowerTooltip(item.pageX, item.pageY, y + " Pa");
-//            }
-//        }
-//        else {
-//            $("#powertooltip").remove();
-//            powerpreviousPoint = null;
-//        }
-//
-//    });
+    //    $("#migratron").bind("plothover", function (event, pos, item) {
+    //        $("#x").text(pos.x);
+    //        $("#y").text(pos.y);
+    //
+    //        if (item) {
+    //            if (powerpreviousPoint != item.datapoint) {
+    //                powerpreviousPoint = item.datapoint;
+    //
+    //                $("#powertooltip").remove();
+    //                var x = item.datapoint[0],
+    //                y = item.datapoint[1];
+    //
+    //                showPowerTooltip(item.pageX, item.pageY, y + " Pa");
+    //            }
+    //        }
+    //        else {
+    //            $("#powertooltip").remove();
+    //            powerpreviousPoint = null;
+    //        }
+    //
+    //    });
 
     function fetchData() {
 
@@ -375,12 +380,12 @@ $(function () {
             success: onTempReceived
         });
 
-//        $.ajax({
-//            url: "windSpeed?startDate=2010-03-01&stopDate=now&reductionFactor=20",
-//            method: 'GET',
-//            dataType: 'json',
-//            success: onWindSpeedReceived
-//        });
+        //        $.ajax({
+        //            url: "windSpeed?startDate=2010-03-01&stopDate=now&reductionFactor=20",
+        //            method: 'GET',
+        //            dataType: 'json',
+        //            success: onWindSpeedReceived
+        //        });
 
         setTimeout(fetchData, 300000 );
 
