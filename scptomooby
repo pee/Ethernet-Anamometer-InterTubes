@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+scp target/sc4.war root@mooby://var/lib/tomcat-7/webapps
+
