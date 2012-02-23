@@ -26,6 +26,7 @@ public class Temp0 extends HttpServlet {
 
     private static final Logger logger = Logger.getLogger(Temp0.class);
     private static final String dateRegex = "(\\d\\d\\d\\d)\\D(\\d\\d)\\D(\\d\\d)";
+    private static final String lastRegex = "(\\d+)";
 
     /**
      * Processes requests for both HTTP
@@ -47,6 +48,7 @@ public class Temp0 extends HttpServlet {
 
         boolean doDateSelect = false;
         boolean doSelectAll = false;
+        boolean doSelectLast = false;
 
         try {
 
@@ -63,29 +65,43 @@ public class Temp0 extends HttpServlet {
 
             String startDate = request.getParameter("startDate");
             String stopDate = request.getParameter("stopDate");
+            String last = request.getParameter("last");
 
-            // Check/parse startDate and stopDate selectors if they exist
-            if ((startDate != null) && (stopDate != null)) {
+            if (last != null) {
 
-                Pattern datePattern = Pattern.compile(dateRegex, Pattern.CASE_INSENSITIVE);
-                Matcher dateMatcher = datePattern.matcher(startDate);
+                Pattern lastPattern = Pattern.compile(lastRegex, Pattern.CASE_INSENSITIVE);
+                Matcher lastMatcher = lastPattern.matcher(last);
 
-                if (dateMatcher.matches() == false) {
-                    logger.fatal("Invalid startDate:" + startDate + ":");
-                    response.sendError(500, "Invalid startDate:" + startDate + ":");
+                if (lastMatcher.matches() == false) {
+                    logger.fatal("Invalid last request:" + last + ":");
+                    response.sendError(500, "Invalid last request:" + last + ":");
                     return;
                 }
+                doSelectLast = true;
 
-                dateMatcher = datePattern.matcher(stopDate);
-                if ((stopDate.equalsIgnoreCase("now") == false)
-                        && dateMatcher.matches() == false) {
-                    logger.fatal("Invalid stopDate:" + stopDate + ":");
-                    response.sendError(500, "Invalid stopDate:" + stopDate + ":");
-                    return;
+            } else {
+                // Check/parse startDate and stopDate selectors if they exist
+                if ((startDate != null) && (stopDate != null)) {
+
+                    Pattern datePattern = Pattern.compile(dateRegex, Pattern.CASE_INSENSITIVE);
+                    Matcher dateMatcher = datePattern.matcher(startDate);
+
+                    if (dateMatcher.matches() == false) {
+                        logger.fatal("Invalid startDate:" + startDate + ":");
+                        response.sendError(500, "Invalid startDate:" + startDate + ":");
+                        return;
+                    }
+
+                    dateMatcher = datePattern.matcher(stopDate);
+                    if ((stopDate.equalsIgnoreCase("now") == false) && dateMatcher.matches() == false) {
+                        logger.fatal("Invalid stopDate:" + stopDate + ":");
+                        response.sendError(500, "Invalid stopDate:" + stopDate + ":");
+                        return;
+                    }
+
+                    doDateSelect = true;
+
                 }
-
-                doDateSelect = true;
-
             }
 
             Enumeration<String> pnames = request.getParameterNames();
@@ -105,16 +121,33 @@ public class Temp0 extends HttpServlet {
             boolean ex = false;
 
             if (doDateSelect == true) {
+
                 String select = "select * from 10_F73ECB010800_temperature ";
                 select += " where ( time > '" + startDate + "') ";
                 select += " and ( time < '" + stopDate + "')";
-                select = select + " order by time";
+                select += " order by time";
 
                 ex = s.execute(select);
+
+            } else if (doSelectLast == true) {
+
+                String select = "select * from 10_F73ECB010800_temperature ";
+                select += " where ( time > DATE_SUB(CURDATE(),INTERVAL " + last  + " DAY ) ) ";
+                select += " and ( time < 'now')";
+                select += " order by time";
+
+                //logger.info("Select:" + select + ":");
+
+                s.execute(select);
+
             } else if (doSelectAll == true) {
+
                 ex = s.execute("select * from 10_F73ECB010800_temperature order by time");
+
             } else {
+
                 ex = s.execute("(select * from 10_F73ECB010800_temperature order by time desc limit 5000 ) order by time");
+
             }
 
             ResultSet rs = s.getResultSet();

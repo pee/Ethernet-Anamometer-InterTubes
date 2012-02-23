@@ -350,10 +350,10 @@ $(function () {
                 mig[1] = max + 25;
             }
 
-            console.log(options);
+            //console.log(options);
             options['yaxes'][0]['min'] = min - 25;
             options['yaxes'][0]['max'] = max + 25;
-            console.log(options);
+            //console.log(options);
 
             drawPlot();
 
@@ -380,7 +380,8 @@ $(function () {
         });
 
         $.ajax({
-            url: "temp0?startDate=2010-03-01&stopDate=now",
+            //url: "temp0?startDate=2010-03-01&stopDate=now",
+            url: "temp0?last=120",
             method: 'GET',
             dataType: 'json',
             success: onTempReceived
