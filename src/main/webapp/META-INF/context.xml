@@ -16,5 +16,7 @@
         url="jdbc:mysql://localhost:3306/sc4"
         username="sc4"
         autoReconnect="true"
+        testConnectionOnCheckout="true"
+        preferredTestQuery="select 1"
         />
 </Context>

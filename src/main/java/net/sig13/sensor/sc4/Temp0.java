@@ -28,7 +28,10 @@ public class Temp0 extends HttpServlet {
     private static final String dateRegex = "(\\d\\d\\d\\d)\\D(\\d\\d)\\D(\\d\\d)";
 
     /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
+     * Processes requests for both HTTP
+     * <code>GET</code> and
+     * <code>POST</code> methods.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -74,8 +77,8 @@ public class Temp0 extends HttpServlet {
                 }
 
                 dateMatcher = datePattern.matcher(stopDate);
-                if ( (stopDate.equalsIgnoreCase("now") == false ) &&
-                    dateMatcher.matches() == false) {
+                if ((stopDate.equalsIgnoreCase("now") == false)
+                        && dateMatcher.matches() == false) {
                     logger.fatal("Invalid stopDate:" + stopDate + ":");
                     response.sendError(500, "Invalid stopDate:" + stopDate + ":");
                     return;
@@ -141,9 +144,15 @@ public class Temp0 extends HttpServlet {
         } finally {
 
             if (conn != null) {
+
                 try {
-                    conn.close();
+
+                    if (conn.isClosed() == false) {
+                        conn.close();
+                    }
+
                     initCtx.close();
+
                     //envCtx.close();
                 } catch (Exception e2) {
                     logger.error(e2, e2);
@@ -160,7 +169,9 @@ public class Temp0 extends HttpServlet {
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP <code>GET</code> method.
+     * Handles the HTTP
+     * <code>GET</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -173,7 +184,9 @@ public class Temp0 extends HttpServlet {
     }
 
     /**
-     * Handles the HTTP <code>POST</code> method.
+     * Handles the HTTP
+     * <code>POST</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -187,6 +200,7 @@ public class Temp0 extends HttpServlet {
 
     /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override
