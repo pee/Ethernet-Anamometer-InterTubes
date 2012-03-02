@@ -1,32 +1,30 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+//
+//
+//
 package net.sig13.sensor.sc4;
 
-import org.apache.log4j.*;
-import org.json.*;
-
-import javax.naming.*;
-import java.sql.*;
-import javax.sql.*;
-
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Enumeration;
-import java.util.regex.*;
+import java.sql.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
 
 /**
  *
  * @author pee
  */
-public class Temp0 extends HttpServlet {
+public class Temp0 extends SensorBase {
 
     private static final Logger logger = Logger.getLogger(Temp0.class);
-    private static final String dateRegex = "(\\d\\d\\d\\d)\\D(\\d\\d)\\D(\\d\\d)";
-    private static final String lastRegex = "(\\d+)";
+    //private static final String dateRegex = "(\\d\\d\\d\\d)\\D(\\d\\d)\\D(\\d\\d)";
+    //private static final String lastRegex = "(\\d+)";
+    //
+    private static final String SENSOR_NAME = "10_F73ECB010800_temperature";
 
     /**
      * Processes requests for both HTTP
@@ -44,11 +42,10 @@ public class Temp0 extends HttpServlet {
         Context envCtx;
         DataSource ds;
         Connection conn = null;
-        PrintWriter out = null;
+        boolean querySet = false;
 
-        boolean doDateSelect = false;
-        boolean doSelectAll = false;
-        boolean doSelectLast = false;
+
+        PreparedStatement ps = null;
 
         try {
 
@@ -63,112 +60,39 @@ public class Temp0 extends HttpServlet {
                 return;
             }
 
-            String startDate = request.getParameter("startDate");
-            String stopDate = request.getParameter("stopDate");
-            String last = request.getParameter("last");
 
-            if (last != null) {
-
-                Pattern lastPattern = Pattern.compile(lastRegex, Pattern.CASE_INSENSITIVE);
-                Matcher lastMatcher = lastPattern.matcher(last);
-
-                if (lastMatcher.matches() == false) {
-                    logger.fatal("Invalid last request:" + last + ":");
-                    response.sendError(500, "Invalid last request:" + last + ":");
-                    return;
-                }
-                doSelectLast = true;
-
-            } else {
-                // Check/parse startDate and stopDate selectors if they exist
-                if ((startDate != null) && (stopDate != null)) {
-
-                    Pattern datePattern = Pattern.compile(dateRegex, Pattern.CASE_INSENSITIVE);
-                    Matcher dateMatcher = datePattern.matcher(startDate);
-
-                    if (dateMatcher.matches() == false) {
-                        logger.fatal("Invalid startDate:" + startDate + ":");
-                        response.sendError(500, "Invalid startDate:" + startDate + ":");
-                        return;
-                    }
-
-                    dateMatcher = datePattern.matcher(stopDate);
-                    if ((stopDate.equalsIgnoreCase("now") == false) && dateMatcher.matches() == false) {
-                        logger.fatal("Invalid stopDate:" + stopDate + ":");
-                        response.sendError(500, "Invalid stopDate:" + stopDate + ":");
-                        return;
-                    }
-
-                    doDateSelect = true;
-
-                }
+            if (validLastQuery(request, response)) {
+                ps = buildLastQuery(SENSOR_NAME, request, conn);
+                querySet = true;
             }
 
-            Enumeration<String> pnames = request.getParameterNames();
-
-            while (pnames.hasMoreElements()) {
-                String pname = pnames.nextElement();
-                if (pname.compareToIgnoreCase("all") == 0) {
-                    doSelectAll = true;
-                }
+            if (validDateQuery(request, response)) {
+                ps = buildDateQuery(SENSOR_NAME, request, conn);
+                querySet = true;
             }
 
-
-            conn = ds.getConnection();
-
-            Statement s = conn.createStatement();
-
-            boolean ex = false;
-
-            if (doDateSelect == true) {
-
-                String select = "select * from 10_F73ECB010800_temperature ";
-                select += " where ( time > '" + startDate + "') ";
-                select += " and ( time < '" + stopDate + "')";
-                select += " order by time";
-
-                ex = s.execute(select);
-
-            } else if (doSelectLast == true) {
-
-                String select = "select * from 10_F73ECB010800_temperature ";
-                select += " where ( time > DATE_SUB(CURDATE(),INTERVAL " + last  + " DAY ) ) ";
-                select += " and ( time < 'now')";
-                select += " order by time";
-
-                //logger.info("Select:" + select + ":");
-
-                s.execute(select);
-
-            } else if (doSelectAll == true) {
-
-                ex = s.execute("select * from 10_F73ECB010800_temperature order by time");
-
-            } else {
-
-                ex = s.execute("(select * from 10_F73ECB010800_temperature order by time desc limit 5000 ) order by time");
-
+            if (validAllQuery(request, response)) {
+                ps = buildAllQuery(SENSOR_NAME, request, conn);
+                querySet = true;
             }
 
-            ResultSet rs = s.getResultSet();
-
-            JSONArray jar = new JSONArray();
-
-            while (rs.next()) {
-
-                JSONArray point = new JSONArray();
-                Timestamp ts = rs.getTimestamp(1);
-                Float value = rs.getFloat(2);
-                point.put(ts.getTime());
-                point.put(value);
-
-                jar.put(point);
+            if (querySet == false) {
+                ps = buildGenericQuery(SENSOR_NAME, request, conn);
             }
 
-            String jsonCrap = jar.toString();
-            response.setContentType("application/json;charset=UTF-8");
-            out = response.getWriter();
-            out.println(jsonCrap);
+            boolean ex = ps.execute();
+
+            if (ex == false) {
+                response.sendError(500, "false return from execute");
+                return;
+            }
+
+            ResultSet rs = ps.getResultSet();
+            assert (rs != null);
+
+            JSONArray jar = encodeToJSON(rs);
+
+            sendJSONArray(jar, response);
 
 
         } catch (Exception e) {
@@ -177,30 +101,21 @@ public class Temp0 extends HttpServlet {
         } finally {
 
             if (conn != null) {
-
                 try {
 
                     if (conn.isClosed() == false) {
                         conn.close();
                     }
-
                     initCtx.close();
 
-                    //envCtx.close();
                 } catch (Exception e2) {
                     logger.error(e2, e2);
                 }
-
             }
 
-            out.close();
-
         }
-
-
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP
      * <code>GET</code> method.
