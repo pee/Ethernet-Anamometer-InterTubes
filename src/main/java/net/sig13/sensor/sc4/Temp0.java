@@ -60,6 +60,7 @@ public class Temp0 extends SensorBase {
                 return;
             }
 
+            conn = ds.getConnection();
 
             if (validLastQuery(request, response)) {
                 ps = buildLastQuery(SENSOR_NAME, request, conn);

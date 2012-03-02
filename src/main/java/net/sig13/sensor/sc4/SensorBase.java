@@ -73,16 +73,16 @@ abstract public class SensorBase extends HttpServlet {
             throw new NullPointerException("sensorName cannot be null");
         }
 
-        select.append("select * from ?");
+        select.append("select * from ");
+        select.append(sensorName);
         select.append(" where ( time > DATE_SUB(CURDATE(),INTERVAL ? DAY ) ) ");
         select.append(" and ( time < 'now')");
         select.append(" order by time");
 
-        logger.debug("select:" + select);
+        logger.debug("buildLastQuery:" + select);
 
         ps = conn.prepareStatement(select.toString());
-        ps.setString(1, sensorName);
-        ps.setInt(2, Integer.parseInt(last));
+        ps.setInt(1, Integer.parseInt(last));
 
         return ps;
 
@@ -146,17 +146,17 @@ abstract public class SensorBase extends HttpServlet {
 
         StringBuilder select = new StringBuilder();
 
-        select.append("select * from ? ");
+        select.append("select * from ");
+        select.append(sensorName);
         select.append(" where ( time > ? ) ");
         select.append(" and ( time < ? )");
         select.append(" order by time");
 
-        logger.debug("select:" + select);
+        logger.debug("buildDateQuery:" + select);
 
         ps = conn.prepareStatement(select.toString());
-        ps.setString(1, sensorName);
-        ps.setString(2, startDate);
-        ps.setString(3, stopDate);
+        ps.setString(1, startDate);
+        ps.setString(2, stopDate);
 
         return ps;
 
@@ -173,7 +173,7 @@ abstract public class SensorBase extends HttpServlet {
 
         while (pnames.hasMoreElements()) {
             String pname = pnames.nextElement();
-            if (pname.compareToIgnoreCase("all") == 0) {
+            if (pname.compareToIgnoreCase(PARAMATER_ALL) == 0) {
                 return true;
             }
         }
@@ -197,12 +197,15 @@ abstract public class SensorBase extends HttpServlet {
             throw new NullPointerException("sensorName cannot be null");
         }
 
-        String select = "select * from ? order by time";
+        StringBuilder select = new StringBuilder();
 
-        logger.debug("select:" + select);
+        select.append("select * from ");
+        select.append(sensorName);
+        select.append(" order by time");
 
-        ps = conn.prepareStatement(select);
-        ps.setString(1, sensorName);
+        logger.debug("buildAllQuery:" + select);
+
+        ps = conn.prepareStatement(select.toString());
 
         return ps;
 
@@ -224,12 +227,13 @@ abstract public class SensorBase extends HttpServlet {
             throw new NullPointerException("sensorName cannot be null");
         }
 
-        String select = "(select * from ? order by time desc limit 5000 ) order by time";
+        StringBuilder select = new StringBuilder();
+        select.append("(select * from ");
+        select.append(sensorName);
+        select.append(" order by time desc limit 5000 ) order by time");
+        logger.debug("guildGenericQuery:" + select);
 
-        logger.debug("select:" + select);
-
-        ps = conn.prepareStatement(select);
-        ps.setString(1, sensorName);
+        ps = conn.prepareStatement(select.toString());
 
         return ps;
 
