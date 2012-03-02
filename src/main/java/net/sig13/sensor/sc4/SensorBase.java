@@ -459,7 +459,7 @@ abstract public class SensorBase extends HttpServlet {
         select.append("(select * from ");
         select.append(sensorName);
         select.append(" order by time desc limit 5000 ) order by time");
-        logger.debug("guildGenericQuery:" + select);
+        logger.debug("buildGenericQuery:" + select);
 
         ps = conn.prepareStatement(select.toString());
 

@@ -43,7 +43,7 @@ public class Pressure0 extends SensorBase {
         select.append("(select * from ");
         select.append(sensorName);
         select.append(" order by time desc limit 2000 ) order by time");
-        logger.debug("guildGenericQuery:" + select);
+        logger.debug("buildGenericQuery:" + select);
 
         ps = conn.prepareStatement(select.toString());
 
