@@ -1,111 +1,60 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+//
+//
+//
 package net.sig13.sensor.sc4;
 
-import org.apache.log4j.*;
-import org.json.*;
-
-import javax.naming.*;
-import java.sql.*;
-import javax.sql.*;
-
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.sql.*;
 import javax.servlet.ServletException;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 
-/**
- *
- * @author pee
- */
-public class Pressure0 extends HttpServlet {
+//
+//
+//
+public class Pressure0 extends SensorBase {
 
     private static final Logger logger = Logger.getLogger(Pressure0.class);
+    //
+    private static final String SENSOR_NAME = "90A2DA0021AC_pressure";
 
     /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     *
+     * Override here because i prefer less data from the sensor for my graph,
+     * FIXME: make less weird
+     *
+     * @param sensorName
+     * @param request
+     * @param conn
+     * @return
+     * @throws SQLException
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @Override
+    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn) throws SQLException {
 
-        Context initCtx = null;
-        Context envCtx = null;
-        DataSource ds = null;
-        Connection conn = null;
-        PrintWriter out = null;
+        PreparedStatement ps;
 
-        try {
-
-            initCtx = new InitialContext();
-            envCtx = (Context) initCtx.lookup("java:comp/env");
-            ds = (DataSource) envCtx.lookup("jdbc/SC4");
-
-            // i have a feeling this doesn't really work here ;)
-            if (ds == null) {
-                logger.fatal("DataSource came back null");
-                response.sendError(500, "DataSource came backnull");
-                return;
-            }
-
-            conn = ds.getConnection();
-
-            Statement s = conn.createStatement();
-
-            boolean ex = s.execute("(select * from 90A2DA0021AC_pressure order by time desc limit 1000 ) order by time");
-
-            ResultSet rs = s.getResultSet();
-
-            JSONArray jar = new JSONArray();
-
-
-            while (rs.next()) {
-
-                JSONArray point = new JSONArray();
-                Timestamp ts = rs.getTimestamp(1);
-                Float value = rs.getFloat(2);
-                point.put(ts.getTime());
-                point.put(value);
-
-                jar.put(point);
-            }
-
-            String jsonCrap = jar.toString();
-            response.setContentType("application/json;charset=UTF-8");
-            out = response.getWriter();
-            out.println(jsonCrap);
-
-
-        } catch (Exception e) {
-            logger.error(e, e);
-
-        } finally {
-
-            if (conn != null) {
-                try {
-                    conn.close();
-                    initCtx.close();
-                    //envCtx.close();
-                } catch (Exception e2) {
-                    logger.error(e2, e2);
-                }
-
-            }
-
-            out.close();
-
+        if (sensorName == null) {
+            throw new NullPointerException("sensorName cannot be null");
         }
 
+        StringBuilder select = new StringBuilder();
+        select.append("(select * from ");
+        select.append(sensorName);
+        select.append(" order by time desc limit 2000 ) order by time");
+        logger.debug("guildGenericQuery:" + select);
+
+        ps = conn.prepareStatement(select.toString());
+
+        return ps;
 
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
-     * Handles the HTTP <code>GET</code> method.
+     * Handles the HTTP
+     * <code>GET</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -113,12 +62,14 @@ public class Pressure0 extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-        processRequest(request, response);
+            throws ServletException, IOException {
+        processRequest(SENSOR_NAME, request, response);
     }
 
     /**
-     * Handles the HTTP <code>POST</code> method.
+     * Handles the HTTP
+     * <code>POST</code> method.
+     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -126,16 +77,17 @@ public class Pressure0 extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-        processRequest(request, response);
+            throws ServletException, IOException {
+        processRequest(SENSOR_NAME, request, response);
     }
 
     /**
      * Returns a short description of the servlet.
+     *
      * @return a String containing servlet description
      */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+        return SENSOR_NAME + " sensor data";
+    }
 }
