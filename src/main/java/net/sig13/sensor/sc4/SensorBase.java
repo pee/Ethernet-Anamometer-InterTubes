@@ -23,13 +23,18 @@ import org.json.JSONArray;
 abstract public class SensorBase extends HttpServlet {
 
     private static final Logger logger = Logger.getLogger(SensorBase.class);
+    // FIXME: Precompile in static initiator for speed
     protected static final String dateRegex = "(\\d\\d\\d\\d)\\D(\\d\\d)\\D(\\d\\d)";
     protected static final String lastRegex = "(\\d+)";
+    //
+    private static final int MIN_REDUCE = 2;
+    private static final int MAX_REDUCE = Integer.MAX_VALUE;
     //
     protected static final String PARAMATER_LAST = "last";
     protected static final String PARAMATER_START_DATE = "startDate";
     protected static final String PARAMATER_STOP_DATE = "stopDate";
     protected static final String PARAMATER_ALL = "all";
+    protected static final String PARAMATER_REDUCTION = "reductionFactor";
     //
     //
 
@@ -49,8 +54,10 @@ abstract public class SensorBase extends HttpServlet {
         Context envCtx;
         DataSource ds;
         Connection conn = null;
+        //
         boolean querySet = false;
-
+        //
+        boolean doReduction = false;
 
         PreparedStatement ps = null;
 
@@ -68,24 +75,29 @@ abstract public class SensorBase extends HttpServlet {
             }
 
             conn = ds.getConnection();
+            assert (conn != null);
+
+            if (validReductionQuery(request, response)) {
+                doReduction = true;
+            }
 
             if (validLastQuery(request, response)) {
-                ps = buildLastQuery(sensorName, request, conn);
+                ps = buildLastQuery(sensorName, request, conn, doReduction);
                 querySet = true;
             }
 
             if (validDateQuery(request, response)) {
-                ps = buildDateQuery(sensorName, request, conn);
+                ps = buildDateQuery(sensorName, request, conn, doReduction);
                 querySet = true;
             }
 
             if (validAllQuery(request, response)) {
-                ps = buildAllQuery(sensorName, request, conn);
+                ps = buildAllQuery(sensorName, request, conn, doReduction);
                 querySet = true;
             }
 
             if (querySet == false) {
-                ps = buildGenericQuery(sensorName, request, conn);
+                ps = buildGenericQuery(sensorName, request, conn, doReduction);
             }
 
             boolean ex = ps.execute();
@@ -153,13 +165,69 @@ abstract public class SensorBase extends HttpServlet {
 
     /**
      *
+     * @param request
+     * @param response
+     * @return
+     * @throws IOException
+     */
+    protected boolean validReductionQuery(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        String reductionFactor = request.getParameter(PARAMATER_REDUCTION);
+
+        int rFactor;
+
+        if (reductionFactor == null || reductionFactor.isEmpty()) {
+            logger.warn("Reduction factor was null or empty");
+            return false;
+        }
+
+        try {
+
+            rFactor = getReductionFactor(request);
+
+        } catch (Exception e) {
+            String error = "Invalid reductionFactor conversion:" + reductionFactor + ":";
+            logger.error(error);
+            response.sendError(500, error);
+            throw new IllegalArgumentException(error);
+        }
+
+        if ((rFactor < MIN_REDUCE) || rFactor > MAX_REDUCE) {
+            String error = "Invalid reductionFactor value:" + reductionFactor + ":";
+            logger.fatal(error);
+            response.sendError(500, error);
+            throw new IllegalArgumentException(error);
+        }
+
+        return true;
+
+    }
+
+    /**
+     *
+     * @param request
+     * @return
+     */
+    protected int getReductionFactor(HttpServletRequest request) {
+
+        int rFactor;
+
+        String reductionFactor = request.getParameter(PARAMATER_REDUCTION);
+
+        rFactor = Integer.decode(reductionFactor);
+
+        return rFactor;
+    }
+
+    /**
+     *
      * @param sensorName
      * @param request
      * @param conn
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildLastQuery(String sensorName, HttpServletRequest request, Connection conn) throws SQLException {
+    protected PreparedStatement buildLastQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
 
         PreparedStatement ps;
 
@@ -170,16 +238,37 @@ abstract public class SensorBase extends HttpServlet {
             throw new NullPointerException("sensorName cannot be null");
         }
 
-        select.append("select * from ");
-        select.append(sensorName);
-        select.append(" where ( time > DATE_SUB(CURDATE(),INTERVAL ? DAY ) ) ");
-        select.append(" and ( time < 'now')");
-        select.append(" order by time");
+        if (doReduction == true) {
+
+            int rFactor = this.getReductionFactor(request);
+
+            select.append("select time,data from ");
+            select.append("( select @row := @row +1 AS rownum, data, time from ");
+            select.append("( select @row := 0) r, ").append(sensorName).append(" ) ");
+            select.append("ranked where ");
+            select.append(" ( time > DATE_SUB(CURDATE(),INTERVAL ? DAY ) ) ");
+            select.append(" and ( time < 'now' )");
+            select.append(" and rownum %? = 1 order by time");
+
+            ps = conn.prepareStatement(select.toString());
+            ps.setInt(1, Integer.parseInt(last));
+            ps.setInt(2, rFactor);
+
+        } else {
+            select.append("select * from ");
+            select.append(sensorName);
+            select.append(" where ( time > DATE_SUB(CURDATE(),INTERVAL ? DAY ) ) ");
+            select.append(" and ( time < 'now')");
+            select.append(" order by time");
+
+            ps = conn.prepareStatement(select.toString());
+            ps.setInt(1, Integer.parseInt(last));
+
+        }
 
         logger.debug("buildLastQuery:" + select);
 
-        ps = conn.prepareStatement(select.toString());
-        ps.setInt(1, Integer.parseInt(last));
+
 
         return ps;
 
@@ -230,7 +319,7 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildDateQuery(String sensorName, HttpServletRequest request, Connection conn) throws SQLException {
+    protected PreparedStatement buildDateQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
 
         PreparedStatement ps;
 
@@ -243,17 +332,37 @@ abstract public class SensorBase extends HttpServlet {
 
         StringBuilder select = new StringBuilder();
 
-        select.append("select * from ");
-        select.append(sensorName);
-        select.append(" where ( time > ? ) ");
-        select.append(" and ( time < ? )");
-        select.append(" order by time");
+        if (doReduction == true) {
+
+            int rFactor = getReductionFactor(request);
+
+            select.append("select time,data from ");
+            select.append("( select @row := @row +1 AS rownum, data, time from ");
+            select.append("( select @row := 0) r, ").append(sensorName).append(" ) ");
+            select.append("ranked where ");
+            select.append(" ( time > ? ) ");
+            select.append(" and ( time < ? )");
+            select.append(" and rownum %? = 1 order by time");
+
+            ps = conn.prepareStatement(select.toString());
+            ps.setString(1, startDate);
+            ps.setString(2, stopDate);
+            ps.setInt(3, rFactor);
+
+        } else {
+            select.append("select * from ");
+            select.append(sensorName);
+            select.append(" where ( time > ? ) ");
+            select.append(" and ( time < ? )");
+            select.append(" order by time");
+
+            ps = conn.prepareStatement(select.toString());
+            ps.setString(1, startDate);
+            ps.setString(2, stopDate);
+
+        }
 
         logger.debug("buildDateQuery:" + select);
-
-        ps = conn.prepareStatement(select.toString());
-        ps.setString(1, startDate);
-        ps.setString(2, stopDate);
 
         return ps;
 
@@ -286,7 +395,7 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildAllQuery(String sensorName, HttpServletRequest request, Connection conn) throws SQLException {
+    protected PreparedStatement buildAllQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
 
         PreparedStatement ps;
 
@@ -296,13 +405,30 @@ abstract public class SensorBase extends HttpServlet {
 
         StringBuilder select = new StringBuilder();
 
-        select.append("select * from ");
-        select.append(sensorName);
-        select.append(" order by time");
+        if (doReduction) {
+
+            int rFactor = getReductionFactor(request);
+
+            select.append("select time,data from ");
+            select.append("( select @row := @row +1 AS rownum, data, time from ");
+            select.append("( select @row := 0) r, ").append(sensorName).append(" ) ");
+            select.append("ranked where rownum %? = 1 order by time");
+
+            ps = conn.prepareStatement(select.toString());
+            ps.setInt(1, rFactor);
+
+        } else {
+
+            select.append("select * from ");
+            select.append(sensorName);
+            select.append(" order by time");
+
+            ps = conn.prepareStatement(select.toString());
+
+        }
 
         logger.debug("buildAllQuery:" + select);
 
-        ps = conn.prepareStatement(select.toString());
 
         return ps;
 
@@ -316,12 +442,17 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn) throws SQLException {
+    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
 
         PreparedStatement ps;
 
         if (sensorName == null) {
             throw new NullPointerException("sensorName cannot be null");
+        }
+
+        // FIXME: this ignores reduction right now
+        if (doReduction == true) {
+            logger.warn("reduction set, don't care");
         }
 
         StringBuilder select = new StringBuilder();

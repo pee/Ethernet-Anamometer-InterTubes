@@ -31,7 +31,7 @@ public class Pressure0 extends SensorBase {
      * @throws SQLException
      */
     @Override
-    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn) throws SQLException {
+    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
 
         PreparedStatement ps;
 
