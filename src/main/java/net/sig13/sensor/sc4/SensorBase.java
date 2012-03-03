@@ -177,7 +177,7 @@ abstract public class SensorBase extends HttpServlet {
         int rFactor;
 
         if (reductionFactor == null || reductionFactor.isEmpty()) {
-            logger.warn("Reduction factor was null or empty");
+            //logger.warn("Reduction factor was null or empty");
             return false;
         }
 

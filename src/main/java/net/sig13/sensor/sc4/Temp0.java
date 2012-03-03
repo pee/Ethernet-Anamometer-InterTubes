@@ -9,10 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
-/**
- *
- * @author pee
- */
+//
+//
+//
 public class Temp0 extends SensorBase {
 
     private static final Logger logger = Logger.getLogger(Temp0.class);
