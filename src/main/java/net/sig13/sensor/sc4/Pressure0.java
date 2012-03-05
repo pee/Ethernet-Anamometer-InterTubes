@@ -31,7 +31,7 @@ public class Pressure0 extends SensorBase {
      * @throws SQLException
      */
     @Override
-    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
+    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction, boolean doNewestFirst) throws SQLException {
 
         PreparedStatement ps;
 
@@ -42,7 +42,12 @@ public class Pressure0 extends SensorBase {
         StringBuilder select = new StringBuilder();
         select.append("(select * from ");
         select.append(sensorName);
-        select.append(" order by time desc limit 2000 ) order by time");
+        select.append(" order by time desc limit 2000 ) ");
+        select.append(" order by time ");
+        if ( doNewestFirst ) {
+            select.append(" DESC ");
+        }
+
         logger.debug("buildGenericQuery:" + select);
 
         ps = conn.prepareStatement(select.toString());

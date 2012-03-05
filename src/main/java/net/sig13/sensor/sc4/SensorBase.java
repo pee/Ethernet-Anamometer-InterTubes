@@ -35,6 +35,7 @@ abstract public class SensorBase extends HttpServlet {
     protected static final String PARAMATER_STOP_DATE = "stopDate";
     protected static final String PARAMATER_ALL = "all";
     protected static final String PARAMATER_REDUCTION = "reductionFactor";
+    protected static final String PARAMATER_NEWEST_FIRST = "newestFirst";
     //
     //
 
@@ -77,27 +78,36 @@ abstract public class SensorBase extends HttpServlet {
             conn = ds.getConnection();
             assert (conn != null);
 
+            boolean doNewestFirst = false;
+
+            String newestFirstString = request.getParameter(PARAMATER_NEWEST_FIRST);
+            if ((newestFirstString == null) || newestFirstString.isEmpty()) {
+                doNewestFirst = false;
+            } else {
+                doNewestFirst = true;
+            }
+
             if (validReductionQuery(request, response)) {
                 doReduction = true;
             }
 
             if (validLastQuery(request, response)) {
-                ps = buildLastQuery(sensorName, request, conn, doReduction);
+                ps = buildLastQuery(sensorName, request, conn, doReduction, doNewestFirst);
                 querySet = true;
             }
 
             if (validDateQuery(request, response)) {
-                ps = buildDateQuery(sensorName, request, conn, doReduction);
+                ps = buildDateQuery(sensorName, request, conn, doReduction, doNewestFirst);
                 querySet = true;
             }
 
             if (validAllQuery(request, response)) {
-                ps = buildAllQuery(sensorName, request, conn, doReduction);
+                ps = buildAllQuery(sensorName, request, conn, doReduction, doNewestFirst);
                 querySet = true;
             }
 
             if (querySet == false) {
-                ps = buildGenericQuery(sensorName, request, conn, doReduction);
+                ps = buildGenericQuery(sensorName, request, conn, doReduction, doNewestFirst);
             }
 
             boolean ex = ps.execute();
@@ -227,7 +237,7 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildLastQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
+    protected PreparedStatement buildLastQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction, boolean doNewestFirst) throws SQLException {
 
         PreparedStatement ps;
 
@@ -248,18 +258,26 @@ abstract public class SensorBase extends HttpServlet {
             select.append("ranked where ");
             select.append(" ( time > DATE_SUB(CURDATE(),INTERVAL ? DAY ) ) ");
             select.append(" and ( time < 'now' )");
-            select.append(" and rownum %? = 1 order by time");
+            select.append(" and rownum %? = 1 ");
+            select.append(" order by time ");
+            if (doNewestFirst) {
+                select.append(" DESC ");
+            }
 
             ps = conn.prepareStatement(select.toString());
             ps.setInt(1, Integer.parseInt(last));
             ps.setInt(2, rFactor);
 
         } else {
+
             select.append("select * from ");
             select.append(sensorName);
             select.append(" where ( time > DATE_SUB(CURDATE(),INTERVAL ? DAY ) ) ");
             select.append(" and ( time < 'now')");
-            select.append(" order by time");
+            select.append(" order by time ");
+            if (doNewestFirst) {
+                select.append(" DESC ");
+            }
 
             ps = conn.prepareStatement(select.toString());
             ps.setInt(1, Integer.parseInt(last));
@@ -267,8 +285,6 @@ abstract public class SensorBase extends HttpServlet {
         }
 
         logger.debug("buildLastQuery:" + select);
-
-
 
         return ps;
 
@@ -319,7 +335,7 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildDateQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
+    protected PreparedStatement buildDateQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction, boolean doNewestFirst) throws SQLException {
 
         PreparedStatement ps;
 
@@ -342,7 +358,11 @@ abstract public class SensorBase extends HttpServlet {
             select.append("ranked where ");
             select.append(" ( time > ? ) ");
             select.append(" and ( time < ? )");
-            select.append(" and rownum %? = 1 order by time");
+            select.append(" and rownum %? = 1 ");
+            select.append(" order by time ");
+            if (doNewestFirst) {
+                select.append(" DESC ");
+            }
 
             ps = conn.prepareStatement(select.toString());
             ps.setString(1, startDate);
@@ -350,11 +370,15 @@ abstract public class SensorBase extends HttpServlet {
             ps.setInt(3, rFactor);
 
         } else {
+
             select.append("select * from ");
             select.append(sensorName);
             select.append(" where ( time > ? ) ");
             select.append(" and ( time < ? )");
-            select.append(" order by time");
+            select.append(" order by time ");
+            if (doNewestFirst) {
+                select.append(" DESC ");
+            }
 
             ps = conn.prepareStatement(select.toString());
             ps.setString(1, startDate);
@@ -395,7 +419,7 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildAllQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
+    protected PreparedStatement buildAllQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction, boolean doNewestFirst) throws SQLException {
 
         PreparedStatement ps;
 
@@ -412,7 +436,11 @@ abstract public class SensorBase extends HttpServlet {
             select.append("select time,data from ");
             select.append("( select @row := @row +1 AS rownum, data, time from ");
             select.append("( select @row := 0) r, ").append(sensorName).append(" ) ");
-            select.append("ranked where rownum %? = 1 order by time");
+            select.append("ranked where rownum %? = 1 ");
+            select.append(" order by time ");
+            if (doNewestFirst) {
+                select.append(" DESC ");
+            }
 
             ps = conn.prepareStatement(select.toString());
             ps.setInt(1, rFactor);
@@ -421,7 +449,10 @@ abstract public class SensorBase extends HttpServlet {
 
             select.append("select * from ");
             select.append(sensorName);
-            select.append(" order by time");
+            select.append(" order by time ");
+            if (doNewestFirst) {
+                select.append(" DESC ");
+            }
 
             ps = conn.prepareStatement(select.toString());
 
@@ -442,7 +473,7 @@ abstract public class SensorBase extends HttpServlet {
      * @return
      * @throws SQLException
      */
-    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction) throws SQLException {
+    protected PreparedStatement buildGenericQuery(String sensorName, HttpServletRequest request, Connection conn, boolean doReduction, boolean doNewestFirst) throws SQLException {
 
         PreparedStatement ps;
 
@@ -458,7 +489,13 @@ abstract public class SensorBase extends HttpServlet {
         StringBuilder select = new StringBuilder();
         select.append("(select * from ");
         select.append(sensorName);
-        select.append(" order by time desc limit 5000 ) order by time");
+        select.append(" order by time desc limit 5000 ) ");
+        select.append(" order by time ");
+        if (doNewestFirst) {
+            select.append(" DESC ");
+        }
+
+
         logger.debug("buildGenericQuery:" + select);
 
         ps = conn.prepareStatement(select.toString());

@@ -1,23 +1,24 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+//
+//
+//
+//
+//
 package net.sig13.sensor.sc4.method;
 
-import org.apache.log4j.*;
-import org.json.*;
-
-import java.io.*;
+import java.io.IOException;
 import java.sql.*;
-import javax.naming.*;
-import javax.servlet.*;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.*;
+import javax.sql.DataSource;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-/**
- *
- * @author pee
- */
+//
+//
+//
 public class Report extends Method {
 
     private final static Logger logger = Logger.getLogger(Report.class);
@@ -178,7 +179,21 @@ public class Report extends Method {
 
             logger.info("Creating table " + readingKey);
             Statement s = conn.createStatement();
-            boolean execute = s.execute("CREATE TABLE " + readingKey + " (time DATETIME , data FLOAT)");
+
+            StringBuilder create = new StringBuilder();
+
+            create.append("CREATE TABLE ");
+            create.append(readingKey);
+            create.append(" (");
+            create.append(" _id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, ");
+            create.append(" time DATETIME, ");
+            create.append(" data FLOAT, ");
+            create.append(" PRIMARY KEY (_id) ");
+            create.append(" )");
+            //boolean execute = s.execute("CREATE TABLE " + readingKey + " (_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, time DATETIME , data FLOAT, PRIMARY KEY(_id))");
+            logger.info("Create table string:" + create.toString() + ":");
+            boolean execute = s.execute(create.toString());
+
 
             if (execute) {
                 throw new Exception("Execute returned true");
@@ -190,6 +205,7 @@ public class Report extends Method {
             logger.info("getUpdateCount:" + uc);
 
             s = conn.createStatement();
+            // FIXME: paramaters
             execute = s.execute("INSERT INTO variables (name, units) VALUES ('" + readingKey + "','" + units + "')");
             if (execute) {
                 logger.warn("Hmm execute returned true for insert");

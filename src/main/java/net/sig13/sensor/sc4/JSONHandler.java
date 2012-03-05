@@ -1,23 +1,22 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+//
+//
+//
 package net.sig13.sensor.sc4;
 
-import net.sig13.sensor.sc4.method.*;
-
-import org.apache.log4j.*;
-import org.json.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import net.sig13.sensor.sc4.method.Ping;
+import net.sig13.sensor.sc4.method.Report;
+import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 //
-import java.io.*;
-import javax.servlet.ServletException;
-import javax.servlet.http.*;
-
-/**
- *
- * @author pee
- */
+//
+//
 public class JSONHandler {
 
     private final static Logger logger = Logger.getLogger(JSONHandler.class);
